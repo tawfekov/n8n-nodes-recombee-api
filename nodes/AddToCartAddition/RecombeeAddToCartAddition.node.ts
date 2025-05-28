@@ -30,7 +30,7 @@ export class RecombeeAddToCartAddition implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'The ID of the user who added the item to cart.',
+				description: 'The ID of the user who added the item to cart',
 			},
 			{
 				displayName: 'Item ID',
@@ -38,7 +38,7 @@ export class RecombeeAddToCartAddition implements INodeType {
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'The ID of the item that was added to cart.',
+				description: 'The ID of the item that was added to cart',
 			},
 			{
 				displayName: 'Amount',

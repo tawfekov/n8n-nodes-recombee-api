@@ -22,7 +22,6 @@
 		"node": ">=20.15",
 		"pnpm": ">=9.1"
 	},
-	"packageManager": "pnpm@10.11.0",
 	"main": "index.js",
 	"scripts": {
 		"build": "tsc && gulp build:icons",
@@ -30,7 +29,7 @@
 		"format": "prettier nodes credentials --write",
 		"lint": "eslint nodes credentials package.json",
 		"lintfix": "eslint nodes credentials package.json --fix",
-		"prepublishOnly": "npm build && npm lint -c .eslintrc.prepublish.js nodes credentials package.json"
+		"prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json"
 	},
 	"files": [
 		"dist"

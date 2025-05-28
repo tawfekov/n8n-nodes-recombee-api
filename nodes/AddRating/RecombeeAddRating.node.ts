@@ -53,14 +53,14 @@ export class RecombeeAddRating implements INodeType {
 				name: 'timestamp',
 				type: 'dateTime',
 				default: '',
-				description: 'Optional timestamp of when the rating was given. If not provided, the current time will be used',
+				description: 'Optional timestamp of when the rating was given. If not provided, the current time will be used.',
 			},
 			{
 				displayName: 'Max Retries',
 				name: 'maxRetries',
 				type: 'number',
 				default: 2,
-				description: 'Number of times to retry failed batch requests. Useful for handling temporary network issues or rate limits',
+				description: 'Number of times to retry failed batch requests. Useful for handling temporary network issues or rate limits.',
 			},
 		],
 	};
