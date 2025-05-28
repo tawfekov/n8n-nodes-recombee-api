@@ -1,0 +1,400 @@
+{
+	"name": "Sync Users",
+	"nodes": [
+		{
+			"parameters": {
+				"rule": {
+					"interval": [
+						{
+							"field": "hours"
+						}
+					]
+				}
+			},
+			"name": "Schedule Trigger",
+			"type": "n8n-nodes-base.scheduleTrigger",
+			"typeVersion": 1,
+			"position": [0, -145],
+			"id": "54ab0674-3d46-4c18-9e66-1a838f36a3c1"
+		},
+		{
+			"parameters": {
+				"url": "=https://jsonplaceholder.typicode.com/users",
+				"options": {
+					"allowUnauthorizedCerts": true
+				}
+			},
+			"name": "HTTP Request",
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.1,
+			"position": [220, -145],
+			"id": "174dd55d-3d7b-4ef6-8acf-19244774172d"
+		},
+		{
+			"parameters": {
+				"userId": "={{ $('Loop Over Items').item.json.username }}",
+				"values": "={ \n   \"username\": {{ $('Loop Over Items').item.json.username }}, \n   \"name\": {{ $('Loop Over Items').item.json.name }},\n   \"email\": {{ $('Loop Over Items').item.json.email }}, \n   \"address\" : {{ $('Loop Over Items').item.json.address.toJsonString() }}, \n   \"phone\" : {{ $('Loop Over Items').item.json.phone }}, \n   \"company\" : {{ $('Loop Over Items').item.json.company.toJsonString() }} ,\n   \"geo\" : {{ $('Loop Over Items').item.json.address.geo }},\n   \"website\" : {{ $('Loop Over Items').item.json.website }}\n}"
+			},
+			"type": "CUSTOM.recombeeSetUserValues",
+			"typeVersion": 1,
+			"position": [880, -145],
+			"id": "e7665557-6c6d-4be3-9ffb-e03fc8c5d7eb",
+			"name": "SetUserValues",
+			"credentials": {
+				"recombeeCredentialsApi": {
+					"id": "PgALY6jgWg6eprtC",
+					"name": "Recombee Credentials account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"options": {}
+			},
+			"type": "n8n-nodes-base.splitInBatches",
+			"typeVersion": 3,
+			"position": [440, -145],
+			"id": "9a5a0dd7-7ae8-4287-a2ee-111ff8759b6d",
+			"name": "Loop Over Items"
+		},
+		{
+			"parameters": {
+				"userId": "={{ $json.email }}"
+			},
+			"type": "CUSTOM.recombeeAddUser",
+			"typeVersion": 1,
+			"position": [660, -220],
+			"id": "02f41315-4a17-4683-9a66-516cb76c7a69",
+			"name": "AddUser",
+			"credentials": {
+				"recombeeCredentialsApi": {
+					"id": "PgALY6jgWg6eprtC",
+					"name": "Recombee Credentials account"
+				}
+			}
+		}
+	],
+	"pinData": {
+		"HTTP Request": [
+			{
+				"json": {
+					"id": 1,
+					"name": "Leanne Graham",
+					"username": "Bret",
+					"email": "Sincere@april.biz",
+					"address": {
+						"street": "Kulas Light",
+						"suite": "Apt. 556",
+						"city": "Gwenborough",
+						"zipcode": "92998-3874",
+						"geo": {
+							"lat": "-37.3159",
+							"lng": "81.1496"
+						}
+					},
+					"phone": "1-770-736-8031 x56442",
+					"website": "hildegard.org",
+					"company": {
+						"name": "Romaguera-Crona",
+						"catchPhrase": "Multi-layered client-server neural-net",
+						"bs": "harness real-time e-markets"
+					}
+				}
+			},
+			{
+				"json": {
+					"id": 2,
+					"name": "Ervin Howell",
+					"username": "Antonette",
+					"email": "Shanna@melissa.tv",
+					"address": {
+						"street": "Victor Plains",
+						"suite": "Suite 879",
+						"city": "Wisokyburgh",
+						"zipcode": "90566-7771",
+						"geo": {
+							"lat": "-43.9509",
+							"lng": "-34.4618"
+						}
+					},
+					"phone": "010-692-6593 x09125",
+					"website": "anastasia.net",
+					"company": {
+						"name": "Deckow-Crist",
+						"catchPhrase": "Proactive didactic contingency",
+						"bs": "synergize scalable supply-chains"
+					}
+				}
+			},
+			{
+				"json": {
+					"id": 3,
+					"name": "Clementine Bauch",
+					"username": "Samantha",
+					"email": "Nathan@yesenia.net",
+					"address": {
+						"street": "Douglas Extension",
+						"suite": "Suite 847",
+						"city": "McKenziehaven",
+						"zipcode": "59590-4157",
+						"geo": {
+							"lat": "-68.6102",
+							"lng": "-47.0653"
+						}
+					},
+					"phone": "1-463-123-4447",
+					"website": "ramiro.info",
+					"company": {
+						"name": "Romaguera-Jacobson",
+						"catchPhrase": "Face to face bifurcated interface",
+						"bs": "e-enable strategic applications"
+					}
+				}
+			},
+			{
+				"json": {
+					"id": 4,
+					"name": "Patricia Lebsack",
+					"username": "Karianne",
+					"email": "Julianne.OConner@kory.org",
+					"address": {
+						"street": "Hoeger Mall",
+						"suite": "Apt. 692",
+						"city": "South Elvis",
+						"zipcode": "53919-4257",
+						"geo": {
+							"lat": "29.4572",
+							"lng": "-164.2990"
+						}
+					},
+					"phone": "493-170-9623 x156",
+					"website": "kale.biz",
+					"company": {
+						"name": "Robel-Corkery",
+						"catchPhrase": "Multi-tiered zero tolerance productivity",
+						"bs": "transition cutting-edge web services"
+					}
+				}
+			},
+			{
+				"json": {
+					"id": 5,
+					"name": "Chelsey Dietrich",
+					"username": "Kamren",
+					"email": "Lucio_Hettinger@annie.ca",
+					"address": {
+						"street": "Skiles Walks",
+						"suite": "Suite 351",
+						"city": "Roscoeview",
+						"zipcode": "33263",
+						"geo": {
+							"lat": "-31.8129",
+							"lng": "62.5342"
+						}
+					},
+					"phone": "(254)954-1289",
+					"website": "demarco.info",
+					"company": {
+						"name": "Keebler LLC",
+						"catchPhrase": "User-centric fault-tolerant solution",
+						"bs": "revolutionize end-to-end systems"
+					}
+				}
+			},
+			{
+				"json": {
+					"id": 6,
+					"name": "Mrs. Dennis Schulist",
+					"username": "Leopoldo_Corkery",
+					"email": "Karley_Dach@jasper.info",
+					"address": {
+						"street": "Norberto Crossing",
+						"suite": "Apt. 950",
+						"city": "South Christy",
+						"zipcode": "23505-1337",
+						"geo": {
+							"lat": "-71.4197",
+							"lng": "71.7478"
+						}
+					},
+					"phone": "1-477-935-8478 x6430",
+					"website": "ola.org",
+					"company": {
+						"name": "Considine-Lockman",
+						"catchPhrase": "Synchronised bottom-line interface",
+						"bs": "e-enable innovative applications"
+					}
+				}
+			},
+			{
+				"json": {
+					"id": 7,
+					"name": "Kurtis Weissnat",
+					"username": "Elwyn.Skiles",
+					"email": "Telly.Hoeger@billy.biz",
+					"address": {
+						"street": "Rex Trail",
+						"suite": "Suite 280",
+						"city": "Howemouth",
+						"zipcode": "58804-1099",
+						"geo": {
+							"lat": "24.8918",
+							"lng": "21.8984"
+						}
+					},
+					"phone": "210.067.6132",
+					"website": "elvis.io",
+					"company": {
+						"name": "Johns Group",
+						"catchPhrase": "Configurable multimedia task-force",
+						"bs": "generate enterprise e-tailers"
+					}
+				}
+			},
+			{
+				"json": {
+					"id": 8,
+					"name": "Nicholas Runolfsdottir V",
+					"username": "Maxime_Nienow",
+					"email": "Sherwood@rosamond.me",
+					"address": {
+						"street": "Ellsworth Summit",
+						"suite": "Suite 729",
+						"city": "Aliyaview",
+						"zipcode": "45169",
+						"geo": {
+							"lat": "-14.3990",
+							"lng": "-120.7677"
+						}
+					},
+					"phone": "586.493.6943 x140",
+					"website": "jacynthe.com",
+					"company": {
+						"name": "Abernathy Group",
+						"catchPhrase": "Implemented secondary concept",
+						"bs": "e-enable extensible e-tailers"
+					}
+				}
+			},
+			{
+				"json": {
+					"id": 9,
+					"name": "Glenna Reichert",
+					"username": "Delphine",
+					"email": "Chaim_McDermott@dana.io",
+					"address": {
+						"street": "Dayna Park",
+						"suite": "Suite 449",
+						"city": "Bartholomebury",
+						"zipcode": "76495-3109",
+						"geo": {
+							"lat": "24.6463",
+							"lng": "-168.8889"
+						}
+					},
+					"phone": "(775)976-6794 x41206",
+					"website": "conrad.com",
+					"company": {
+						"name": "Yost and Sons",
+						"catchPhrase": "Switchable contextually-based project",
+						"bs": "aggregate real-time technologies"
+					}
+				}
+			},
+			{
+				"json": {
+					"id": 10,
+					"name": "Clementina DuBuque",
+					"username": "Moriah.Stanton",
+					"email": "Rey.Padberg@karina.biz",
+					"address": {
+						"street": "Kattie Turnpike",
+						"suite": "Suite 198",
+						"city": "Lebsackbury",
+						"zipcode": "31428-2261",
+						"geo": {
+							"lat": "-38.2386",
+							"lng": "57.2232"
+						}
+					},
+					"phone": "024-648-3804",
+					"website": "ambrose.net",
+					"company": {
+						"name": "Hoeger LLC",
+						"catchPhrase": "Centralized empowering task-force",
+						"bs": "target end-to-end models"
+					}
+				}
+			}
+		]
+	},
+	"connections": {
+		"Schedule Trigger": {
+			"main": [
+				[
+					{
+						"node": "HTTP Request",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"HTTP Request": {
+			"main": [
+				[
+					{
+						"node": "Loop Over Items",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Loop Over Items": {
+			"main": [
+				[],
+				[
+					{
+						"node": "AddUser",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"SetUserValues": {
+			"main": [
+				[
+					{
+						"node": "Loop Over Items",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"AddUser": {
+			"main": [
+				[
+					{
+						"node": "SetUserValues",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"active": false,
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"versionId": "42df24a8-c7f8-4d7a-9ec3-a2ba70663558",
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "5b921b91aa2c411a427be3fb75751cb56eed5ce29e0b0ddfdd414967641018e1"
+	},
+	"id": "WN9cTuQ0ss1apBXQ",
+	"tags": []
+}

@@ -1,0 +1,81 @@
+{
+	"name": "n8n-nodes-recombee-api",
+	"version": "0.1.0",
+	"description": "An n8n community node package that integrates with the Recombee API, enabling users to manage and interact with Recombee's recommendation engine through n8n workflows.",
+	"keywords": [
+		"n8n-community-node-package",
+		"recombee",
+		"n8n",
+		"recommendation-engine"
+	],
+	"license": "MIT",
+	"homepage": "",
+	"author": {
+		"name": "Tawfek Daghistani",
+		"email": "tawfekov@gmail.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tawfekov/n8n-nodes-recombee-api.git"
+	},
+	"engines": {
+		"node": ">=20.15",
+		"pnpm": ">=9.1"
+	},
+	"packageManager": "pnpm@10.11.0",
+	"main": "index.js",
+	"scripts": {
+		"build": "tsc && gulp build:icons",
+		"dev": "tsc --watch",
+		"format": "prettier nodes credentials --write",
+		"lint": "eslint nodes credentials package.json",
+		"lintfix": "eslint nodes credentials package.json --fix",
+		"prepublishOnly": "npm build && npm lint -c .eslintrc.prepublish.js nodes credentials package.json"
+	},
+	"files": [
+		"dist"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"credentials": [
+			"dist/credentials/RecombeeCredentialsApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/AddBookmark/RecombeeAddBookmark.node.js",
+			"dist/nodes/AddToCartAddition/RecombeeAddToCartAddition.node.js",
+			"dist/nodes/AddDetailView/RecombeeAddDetailView.node.js",
+			"dist/nodes/AddItem/RecombeeAddItem.node.js",
+			"dist/nodes/AddPurchase/RecombeeAddPurchase.node.js",
+			"dist/nodes/AddRating/RecombeeAddRating.node.js",
+			"dist/nodes/AddSeries/RecombeeAddSeries.node.js",
+			"dist/nodes/AddUser/RecombeeAddUser.node.js",
+			"dist/nodes/DeleteItem/RecombeeDeleteItem.node.js",
+			"dist/nodes/DeleteUser/RecombeeDeleteUser.node.js",
+			"dist/nodes/GetItemValues/RecombeeGetItemValues.node.js",
+			"dist/nodes/GetUserValues/RecombeeGetUserValues.node.js",
+			"dist/nodes/ListItems/RecombeeListItems.node.js",
+			"dist/nodes/ListUsers/RecombeeListUsers.node.js",
+			"dist/nodes/RecommendItemsToItem/RecombeeRecommendItemsToItem.node.js",
+			"dist/nodes/RecommendItemsToUser/RecombeeRecommendItemsToUser.node.js",
+			"dist/nodes/RecommendUsersToItem/RecombeeRecommendUsersToItem.node.js",
+			"dist/nodes/RecommendItemsToItem/RecombeeRecommendItemsToItem.node.js",
+			"dist/nodes/RecommendUsersToItem/RecombeeRecommendUsersToItem.node.js",
+			"dist/nodes/ResetDatabase/RecombeeResetDatabase.node.js",
+			"dist/nodes/SearchItems/RecombeeSearchItems.node.js",
+			"dist/nodes/SetItemValues/RecombeeSetItemValues.node.js",
+			"dist/nodes/SetUserValues/RecombeeSetUserValues.node.js"
+		]
+	},
+	"devDependencies": {
+		"@typescript-eslint/parser": "~8.32.0",
+		"eslint": "^8.57.0",
+		"eslint-plugin-n8n-nodes-base": "^1.16.3",
+		"gulp": "^5.0.0",
+		"prettier": "^3.5.3",
+		"typescript": "^5.8.2"
+	},
+	"dependencies": {
+		"n8n-workflow": "^1.82.0",
+		"recombee-api-client": "^5.0.2"
+	}
+}
