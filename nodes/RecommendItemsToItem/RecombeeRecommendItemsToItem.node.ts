@@ -18,16 +18,18 @@ export class RecombeeRecommendItemsToItem implements INodeType {
 		version: 1,
 		description: 'RecommendItemsToItem operation from Recombee with batching',
 		defaults: {
-			name: 'RecommendItemsToItem',
+			name: 'Recommend Items To Item',
 		},
 		inputs: [NodeConnectionType.Main],
 		outputs: [NodeConnectionType.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
 			{ displayName: 'Item ID', name: 'itemId', type: 'string', default: '', required: true },
+			{ displayName: 'Return Properties', name: 'returnProperties', type: 'boolean', default: true, required: true },
 			{ displayName: 'User ID', name: 'userId', type: 'string', default: '', required: true },
+			{ displayName: 'Filter', name: 'filter', type: 'string', default: '', description: 'Currently Unused , Docs : https://docs.recombee.com/reql_filtering_and_boosting#reql-filtering' },
 			{ displayName: 'Count', name: 'count', type: 'number', default: 100, required: true },
-			{ displayName: 'Scenario', name: 'scenario', type: 'string', default: '', required: true },
+			{ displayName: 'Scenario', name: 'scenario', type: 'string', default: '' },
 			{ displayName: 'Batch Size', name: 'batchSize', type: 'number', default: 10, description: 'Number of requests per batch' },
 			{ displayName: 'Max Retries', name: 'maxRetries', type: 'number', default: 2, description: 'Number of retry attempts on failure' },
 			{ displayName: 'Timeout (Ms)', name: 'timeout', type: 'number', default: 10000, description: 'Request timeout in milliseconds' },
@@ -39,7 +41,9 @@ export class RecombeeRecommendItemsToItem implements INodeType {
 		const returnData: INodeExecutionData[] = [];
 		const credentials = await this.getCredentials('recombeeCredentialsApi');
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
-		const timeout = this.getNodeParameter('timeout', 0) as number;
+		const timeout = Number.isFinite(parseInt(credentials.recombee_api_timeout.toString()))
+			? parseInt(credentials.recombee_api_timeout.toString())
+			: 10000;
 		const batchSize = this.getNodeParameter('batchSize', 0) as number;
 
 		const client = new RecombeeClient(
@@ -67,14 +71,16 @@ export class RecombeeRecommendItemsToItem implements INodeType {
 				try {
 					const itemId = this.getNodeParameter('itemId', itemIndex) as string;
 					const userId = this.getNodeParameter('userId', itemIndex) as string;
+					// const filter = this.getNodeParameter('filter', itemIndex) as string;
 					const count = this.getNodeParameter('count', itemIndex) as number;
 					const scenario = this.getNodeParameter('scenario', itemIndex) as string;
+					const returnProperties = this.getNodeParameter('returnProperties', itemIndex) as boolean;
 
-					const request = new requests.RecommendItemsToItem(itemId, userId, count, { scenario });
+					const request = new requests.RecommendItemsToItem(itemId, userId, count, { scenario, returnProperties });
 					request.timeout = timeout;
 
 					const data = await sendWithRetry(request, maxRetries);
-					return { json: { success: true, itemId, userId, count, scenario, data } };
+					return { json: { success: true, itemId, userId, count, scenario, returnProperties, data } };
 				} catch (error) {
 					if (this.continueOnFail()) {
 						return { json: { success: false, error: error.message }, pairedItem: itemIndex };

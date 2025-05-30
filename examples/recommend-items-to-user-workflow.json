@@ -1,0 +1,86 @@
+{
+	"nodes": [
+		{
+			"parameters": {},
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0],
+			"id": "16eeccf9-21e2-4e1d-9818-559261b46a0a",
+			"name": "When clicking ‘Execute workflow’"
+		},
+		{
+			"parameters": {
+				"userId": "3",
+				"scenario": "TopItems",
+				"filter": "\"\""
+			},
+			"type": "n8n-nodes-recombee-api.recombeeRecommendItemsToUser",
+			"typeVersion": 1,
+			"position": [220, 0],
+			"id": "9ace3480-0dc2-4351-927b-b4971261fa8d",
+			"name": "RecommendItemsToUser",
+			"alwaysOutputData": true,
+			"credentials": {
+				"recombeeCredentialsApi": {
+					"id": "uwt2vEgv7kpAoUh0",
+					"name": "Recombee Credentials account"
+				}
+			},
+			"onError": "continueErrorOutput"
+		},
+		{
+			"parameters": {},
+			"type": "n8n-nodes-base.debugHelper",
+			"typeVersion": 1,
+			"position": [440, 100],
+			"id": "3df766c1-8763-4b0a-88c0-843499150c47",
+			"name": "DebugHelper1"
+		},
+		{
+			"parameters": {
+				"jsCode": "const items = $input.first().json.data.recomms\nconst result = [];\n// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of items) {\n  result.push({\n    \"recommId\": $input.first().json.data.recommId,\n    ...item.values\n  })\n}\n\nreturn result;"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [440, -100],
+			"id": "f02f788c-821b-4d24-a93b-c36d97cd40fa",
+			"name": "Code"
+		}
+	],
+	"connections": {
+		"When clicking ‘Execute workflow’": {
+			"main": [
+				[
+					{
+						"node": "RecommendItemsToUser",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"RecommendItemsToUser": {
+			"main": [
+				[
+					{
+						"node": "Code",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "DebugHelper1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "5b5d61a6d2248e5c1aa8687d1b94378c2830978da697c47b6e4ca4180eaaa6ef"
+	}
+}

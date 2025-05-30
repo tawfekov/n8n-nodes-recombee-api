@@ -1,0 +1,95 @@
+{
+	"nodes": [
+		{
+			"parameters": {},
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [0, 0],
+			"id": "9c085a0a-4d95-42df-a1e2-6fbeb714cc8c",
+			"name": "When clicking ‘Execute workflow’"
+		},
+		{
+			"parameters": {},
+			"type": "n8n-nodes-base.debugHelper",
+			"typeVersion": 1,
+			"position": [440, 100],
+			"id": "1ea30251-47c3-40fb-ad9d-691c6854698a",
+			"name": "DebugHelper1"
+		},
+		{
+			"parameters": {
+				"jsCode": "const items = $input.first().json.data.recomms\nconst result = [];\n// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of items) {\n  result.push({\n    \"recommId\": $input.first().json.data.recommId,\n    ...item.values\n  })\n}\n\nreturn result;"
+			},
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [440, -100],
+			"id": "b39b9ff1-3c28-45ad-b0f3-dc7c6d0edf19",
+			"name": "Code"
+		},
+		{
+			"parameters": {
+				"itemId": "1",
+				"userId": "1",
+				"scenario": "ItemToItem"
+			},
+			"type": "n8n-nodes-recombee-api.recombeeRecommendItemsToItem",
+			"typeVersion": 1,
+			"position": [220, 0],
+			"id": "532bbe74-5273-49d6-9fc2-739c1fb19180",
+			"name": "RecommendItemsToItem",
+			"credentials": {
+				"recombeeCredentialsApi": {
+					"id": "uwt2vEgv7kpAoUh0",
+					"name": "Recombee Credentials account"
+				}
+			},
+			"onError": "continueErrorOutput"
+		},
+		{
+			"parameters": {
+				"content": "## Use a scenario that match this node"
+			},
+			"type": "n8n-nodes-base.stickyNote",
+			"position": [140, -220],
+			"typeVersion": 1,
+			"id": "b0d73450-6e70-40ca-8c73-cf5df07b5fa5",
+			"name": "Sticky Note"
+		}
+	],
+	"connections": {
+		"When clicking ‘Execute workflow’": {
+			"main": [
+				[
+					{
+						"node": "RecommendItemsToItem",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"RecommendItemsToItem": {
+			"main": [
+				[
+					{
+						"node": "Code",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "DebugHelper1",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "5b5d61a6d2248e5c1aa8687d1b94378c2830978da697c47b6e4ca4180eaaa6ef"
+	}
+}

@@ -18,13 +18,14 @@ export class RecombeeRecommendUsersToItem implements INodeType {
 		version: 1,
 		description: 'RecommendUsersToItem operation from Recombee with batching and retries',
 		defaults: {
-			name: 'RecommendUsersToItem',
+			name: 'Recommend Users To Item',
 		},
 		inputs: [NodeConnectionType.Main],
 		outputs: [NodeConnectionType.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
 			{ displayName: 'Item ID', name: 'itemId', type: 'string', default: '', required: true },
+			{ displayName: 'Return Properties', name: 'returnProperties', type: 'boolean', default: true, required: true },
 			{ displayName: 'Count', name: 'count', type: 'number', default: 100, required: true },
 			{ displayName: 'Scenario', name: 'scenario', type: 'string', default: '', required: true },
 			{ displayName: 'Batch Size', name: 'batchSize', type: 'number', default: 10, description: 'Number of requests per batch' },
@@ -38,7 +39,9 @@ export class RecombeeRecommendUsersToItem implements INodeType {
 		const returnData: INodeExecutionData[] = [];
 		const credentials = await this.getCredentials('recombeeCredentialsApi');
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
-		const timeout = this.getNodeParameter('timeout', 0) as number;
+		const timeout = Number.isFinite(parseInt(credentials.recombee_api_timeout.toString()))
+			? parseInt(credentials.recombee_api_timeout.toString())
+			: 10000;
 		const batchSize = this.getNodeParameter('batchSize', 0) as number;
 
 		const client = new RecombeeClient(
@@ -67,12 +70,13 @@ export class RecombeeRecommendUsersToItem implements INodeType {
 					const itemId = this.getNodeParameter('itemId', itemIndex) as string;
 					const count = this.getNodeParameter('count', itemIndex) as number;
 					const scenario = this.getNodeParameter('scenario', itemIndex) as string;
+					const returnProperties = this.getNodeParameter('returnProperties', itemIndex) as boolean;
 
-					const request = new requests.RecommendUsersToItem(itemId, count, { scenario });
+					const request = new requests.RecommendUsersToItem(itemId, count, { scenario, returnProperties });
 					request.timeout = timeout;
 
 					const data = await sendWithRetry(request, maxRetries);
-					return { json: { success: true, itemId, count, scenario, data } };
+					return { json: { success: true, itemId, count, scenario, returnProperties, data } };
 				} catch (error) {
 					if (this.continueOnFail()) {
 						return { json: { success: false, error: error.message }, pairedItem: itemIndex };
