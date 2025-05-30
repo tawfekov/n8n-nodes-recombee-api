@@ -41,6 +41,14 @@ export class RecombeeSetItemValues implements INodeType {
 				description: 'JSON object containing item properties to set or update',
 			},
 			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
 				displayName: 'Max Retries',
 				name: 'maxRetries',
 				type: 'number',
@@ -58,7 +66,6 @@ export class RecombeeSetItemValues implements INodeType {
 		const timeout = Number.isFinite(parseInt(credentials.recombee_api_timeout.toString()))
 			? parseInt(credentials.recombee_api_timeout.toString())
 			: 10000;
-
 		const client = new RecombeeClient(
 			credentials.recombee_database_id.toString(),
 			credentials.recombee_database_private_token.toString(),
@@ -97,11 +104,17 @@ export class RecombeeSetItemValues implements INodeType {
 		try {
 			for (let i = 0; i < items.length; i++) {
 				const itemId = this.getNodeParameter('itemId', i) as string;
-				const values = this.getNodeParameter('values', i) as Record<string, any>;
-				const request = new requests.SetItemValues(itemId, values);
+				const values = JSON.parse(this.getNodeParameter('values', i) as string) as Record<string, any>;
+				const cascadeCreate = this.getNodeParameter('cascadeCreate', i) as Boolean || true;
+				if (Object.keys(values).length === 0) {
+					throw new NodeOperationError(this.getNode(), 'Values cannot be empty');
+				}
+				const request = new requests.SetItemValues(itemId, values, {
+					cascadeCreate: cascadeCreate as boolean,
+				});
 				request.timeout = timeout;
 				batchRequests.push(request);
-				processedItems.push({ itemId, values, index: i });
+				processedItems.push({ itemId, values, cascadeCreate, index: i });
 
 				if (batchRequests.length >= 100) {
 					await sendBatchWithRetry(batchRequests, processedItems);

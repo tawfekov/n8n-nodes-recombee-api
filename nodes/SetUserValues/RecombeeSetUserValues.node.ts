@@ -41,6 +41,14 @@ export class RecombeeSetUserValues implements INodeType {
 				description: 'JSON object containing user properties to set or update',
 			},
 			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: true,
+				required: true,
+				description: 'Whether to create the user if it does not exist',
+			},
+			{
 				displayName: 'Max Retries',
 				name: 'maxRetries',
 				type: 'number',
@@ -66,7 +74,6 @@ export class RecombeeSetUserValues implements INodeType {
 		);
 
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
-		const cascadeCreate = this.getNodeParameter('cascadeCreate', 1) as boolean;
 		let batchRequests: requests.Request[] = [];
 		const processedItems: any[] = [];
 
@@ -98,13 +105,15 @@ export class RecombeeSetUserValues implements INodeType {
 		try {
 			for (let i = 0; i < items.length; i++) {
 				const userId = this.getNodeParameter('userId', i) as string;
-				const values = this.getNodeParameter('values', i) as Record<string, any>;
-
+				const values = JSON.parse(this.getNodeParameter('values', i) as string) as Record<string, any>;
+				const cascadeCreate = this.getNodeParameter('cascadeCreate', i) as Boolean || true;
 				if (Object.keys(values).length === 0) {
 					throw new NodeOperationError(this.getNode(), 'Values cannot be empty');
 				}
 
-				const request = new requests.SetUserValues(userId, values, { cascadeCreate });
+				const request = new requests.SetUserValues(userId, values, {
+					cascadeCreate: cascadeCreate as boolean,
+				});
 				request.timeout = timeout;
 				batchRequests.push(request);
 				processedItems.push({ userId, values, cascadeCreate, index: i });
