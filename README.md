@@ -2,7 +2,7 @@
 
 # n8n-nodes-recombee
 
-This is an n8n community node that lets you integrate Recombee's AI-powered recommendation engine into your n8n workflows. Recombee provides powerful personalization capabilities for various use cases including e-commerce, content recommendations, and more.
+This is an n8n community node that lets you integrate [Recombee's AI-powered recommendation engine](https://www.recombee.com/?ref=n8n-nodes-recombee-api) into your n8n workflows. Recombee provides powerful personalization capabilities for various use cases including e-commerce, content recommendations, and more.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
