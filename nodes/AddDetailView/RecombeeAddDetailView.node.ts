@@ -41,6 +41,14 @@ export class RecombeeAddDetailView implements INodeType {
 				description: 'The ID of the item that was viewed',
 			},
 			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
 				displayName: 'Timestamp',
 				name: 'timestamp',
 				type: 'dateTime',
@@ -61,7 +69,6 @@ export class RecombeeAddDetailView implements INodeType {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 		const credentials = await this.getCredentials('recombeeCredentialsApi');
-
 		const timeout = Number.isFinite(parseInt(credentials.recombee_api_timeout.toString()))
 			? parseInt(credentials.recombee_api_timeout.toString())
 			: 10000;
@@ -106,7 +113,8 @@ export class RecombeeAddDetailView implements INodeType {
 				const itemId = this.getNodeParameter('itemId', i) as string;
 				const userId = this.getNodeParameter('userId', i) as string;
 				const timestamp = this.getNodeParameter('timestamp', i) as string;
-				const request = new requests.AddDetailView(userId, itemId, { timestamp });
+				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
+				const request = new requests.AddDetailView(userId, itemId, { timestamp, cascadeCreate });
 				request.timeout = timeout;
 				batchRequests.push(request);
 				processedItems.push({ itemId, userId, timestamp, index: i });

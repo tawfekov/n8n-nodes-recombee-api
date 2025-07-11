@@ -41,6 +41,14 @@ export class RecombeeAddRating implements INodeType {
 				description: 'The ID of the item being rated',
 			},
 			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
 				displayName: 'Rating',
 				name: 'rating',
 				type: 'number',
@@ -115,7 +123,8 @@ export class RecombeeAddRating implements INodeType {
 				const userId = this.getNodeParameter('userId', i) as string;
 				const rating = this.getNodeParameter('rating', i) as number;
 				const timestamp = this.getNodeParameter('timestamp', i) as string;
-				const request = new requests.AddRating(userId, itemId, rating, { timestamp });
+				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
+				const request = new requests.AddRating(userId, itemId, rating, { timestamp, cascadeCreate });
 				request.timeout = timeout;
 				batchRequests.push(request);
 				processedItems.push({ itemId, userId, rating, timestamp, index: i });

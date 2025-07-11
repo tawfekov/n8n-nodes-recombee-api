@@ -24,11 +24,60 @@ export class RecombeeSearchItems implements INodeType {
 		outputs: [NodeConnectionType.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
-			{ displayName: 'Query', name: 'query', type: 'string', default: '', required: true },
-			{ displayName: 'User ID', name: 'userId', type: 'string', default: '', required: true },
-			{ displayName: 'Count', name: 'count', type: 'number', default: 100, required: true },
-			{ displayName: 'Scenario', name: 'scenario', type: 'string', default: '', required: true },
-			{ displayName: 'Max Retries', name: 'maxRetries', type: 'number', default: 2, description: 'Number of times to retry failed batch requests' },
+			{
+				displayName: 'Query',
+				name: 'query',
+				type: 'string',
+				default: '',
+				required: true,
+				description: 'The query to search for',
+			},
+			{
+				displayName: 'User ID',
+				name: 'userId',
+				type: 'string',
+				default: '',
+				required: true,
+				description: 'The ID of the user to search for',
+			},
+			{
+				displayName: 'Count',
+				name: 'count',
+				type: 'number',
+				default: 100,
+				required: true,
+				description: 'The number of items to return',
+			},
+			{
+				displayName: 'Scenario',
+				name: 'scenario',
+				type: 'string',
+				default: '',
+				required: true,
+				description: 'The scenario to search for',
+			},
+			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
+				displayName: 'Max Retries',
+				name: 'maxRetries',
+				type: 'number',
+				default: 2,
+				description: 'Number of times to retry failed batch requests',
+			},
+			{
+				displayName: 'Timeout (Ms)',
+				name: 'timeout',
+				type: 'number',
+				default: 10000,
+				description: 'Request timeout in milliseconds',
+			},
 		],
 	};
 
@@ -85,8 +134,8 @@ export class RecombeeSearchItems implements INodeType {
 				const userId = this.getNodeParameter('userId', i) as string;
 				const count = this.getNodeParameter('count', i) as number;
 				const scenario = this.getNodeParameter('scenario', i) as string;
-
-				const request = new requests.SearchItems(userId, query, count, { scenario });
+				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
+				const request = new requests.SearchItems(userId, query, count, { scenario, cascadeCreate });
 				request.timeout = timeout;
 				batchRequests.push(request);
 				processedItems.push({ userId, query, count, scenario, index: i });

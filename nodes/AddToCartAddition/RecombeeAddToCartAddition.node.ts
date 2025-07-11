@@ -41,6 +41,14 @@ export class RecombeeAddToCartAddition implements INodeType {
 				description: 'The ID of the item that was added to cart',
 			},
 			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
 				displayName: 'Amount',
 				name: 'amount',
 				type: 'number',
@@ -114,7 +122,8 @@ export class RecombeeAddToCartAddition implements INodeType {
 				const userId = this.getNodeParameter('userId', i) as string;
 				const amount = this.getNodeParameter('amount', i) as number;
 				const timestamp = this.getNodeParameter('timestamp', i) as string;
-				const request = new requests.AddCartAddition(userId, itemId, { amount, timestamp });
+				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
+				const request = new requests.AddCartAddition(userId, itemId, { amount, timestamp, cascadeCreate });
 				request.timeout = timeout;
 				batchRequests.push(request);
 				processedItems.push({ itemId, userId, amount, timestamp, index: i });

@@ -74,7 +74,7 @@
 		"typescript": "^5.8.2"
 	},
 	"dependencies": {
-		"n8n-workflow": "^1.82.0",
+		"n8n-workflow": "^1.96.0",
 		"recombee-api-client": "^5.0.2"
 	}
 }

@@ -62,6 +62,14 @@ export class RecombeeRecommendItemsToUser implements INodeType {
 				description: 'Optional ReQL filter expression to filter recommendations , currently unused : https://docs.recombee.com/reql_filtering_and_boosting#reql-filtering',
 			},
 			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
 				displayName: 'Max Retries',
 				name: 'maxRetries',
 				type: 'number',
@@ -115,7 +123,8 @@ export class RecombeeRecommendItemsToUser implements INodeType {
 					const count = this.getNodeParameter('count', itemIndex) as number;
 					const scenario = this.getNodeParameter('scenario', itemIndex) as string;
 					const returnProperties = this.getNodeParameter('returnProperties', itemIndex) as boolean;
-					const request = new requests.RecommendItemsToUser(userId, count, { scenario, returnProperties });
+					const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', itemIndex) as boolean || false;
+					const request = new requests.RecommendItemsToUser(userId, count, { scenario, returnProperties, cascadeCreate });
 					request.timeout = timeout;
 
 					const data = await sendWithRetry(request, maxRetries);

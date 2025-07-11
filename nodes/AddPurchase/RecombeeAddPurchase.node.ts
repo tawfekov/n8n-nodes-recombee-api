@@ -48,6 +48,14 @@ export class RecombeeAddPurchase implements INodeType {
 				description: 'Optional amount of items purchased. Default is 1.',
 			},
 			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
 				displayName: 'Timestamp',
 				name: 'timestamp',
 				type: 'dateTime',
@@ -114,7 +122,8 @@ export class RecombeeAddPurchase implements INodeType {
 				const userId = this.getNodeParameter('userId', i) as string;
 				const amount = this.getNodeParameter('amount', i) as number;
 				const timestamp = this.getNodeParameter('timestamp', i) as string;
-				const request = new requests.AddPurchase(userId, itemId, { amount, timestamp });
+				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
+				const request = new requests.AddPurchase(userId, itemId, { amount, timestamp, cascadeCreate });
 				request.timeout = timeout;
 				batchRequests.push(request);
 				processedItems.push({ itemId, userId, amount, timestamp, index: i });

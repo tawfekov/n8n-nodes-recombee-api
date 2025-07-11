@@ -24,13 +24,60 @@ export class RecombeeRecommendUsersToUser implements INodeType {
 		outputs: [NodeConnectionType.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
-			{ displayName: 'User ID', name: 'userId', type: 'string', default: '', required: true },
-			{ displayName: 'Return Properties', name: 'returnProperties', type: 'boolean', default: true, required: true },
-			{ displayName: 'Count', name: 'count', type: 'number', default: 100, required: true },
-			{ displayName: 'Scenario', name: 'scenario', type: 'string', default: '', required: true },
-			{ displayName: 'Batch Size', name: 'batchSize', type: 'number', default: 10, description: 'Number of requests per batch' },
-			{ displayName: 'Max Retries', name: 'maxRetries', type: 'number', default: 2, description: 'Number of retry attempts on failure' },
-			{ displayName: 'Timeout (Ms)', name: 'timeout', type: 'number', default: 10000, description: 'Request timeout in milliseconds' },
+			{
+				displayName: 'User ID',
+				name: 'userId',
+				type: 'string',
+				default: '',
+				required: true,
+				description: 'The ID of the user to recommend to',
+			},
+			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
+				displayName: 'Return Properties',
+				name: 'returnProperties',
+				type: 'boolean',
+				default: true,
+				required: true,
+				description: 'Whether to return the properties of the recommended users',
+			},
+			{
+				displayName: 'Count',
+				name: 'count',
+				type: 'number',
+				default: 100,
+				required: true,
+				description: 'The number of recommended users to return',
+			},
+			{
+				displayName: 'Scenario',
+				name: 'scenario',
+				type: 'string',
+				default: '',
+				required: true,
+				description: 'The scenario to recommend users for',
+			},
+			{
+				displayName: 'Max Retries',
+				name: 'maxRetries',
+				type: 'number',
+				default: 2,
+				description: 'Number of retry attempts on failure',
+			},
+			{
+				displayName: 'Timeout (Ms)',
+				name: 'timeout',
+				type: 'number',
+				default: 10000,
+				description: 'Request timeout in milliseconds',
+			},
 		],
 	};
 
@@ -71,8 +118,8 @@ export class RecombeeRecommendUsersToUser implements INodeType {
 					const count = this.getNodeParameter('count', itemIndex) as number;
 					const scenario = this.getNodeParameter('scenario', itemIndex) as string;
 					const returnProperties = this.getNodeParameter('returnProperties', itemIndex) as boolean;
-
-					const request = new requests.RecommendUsersToUser(userId, count, { scenario, returnProperties });
+					const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', itemIndex) as boolean || false;
+					const request = new requests.RecommendUsersToUser(userId, count, { scenario, returnProperties, cascadeCreate });
 					request.timeout = timeout;
 
 					const data = await sendWithRetry(request, maxRetries);
