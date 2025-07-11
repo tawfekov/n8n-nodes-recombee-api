@@ -89,7 +89,7 @@ export class RecombeeAddToCartAddition implements INodeType {
 
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 		let batchRequests: requests.Request[] = [];
-		const processedItems: any[] = [];
+		const processedItems: { itemId: string; userId: string; amount: number; timestamp: string; index: number; cascadeCreate: boolean }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;
@@ -121,12 +121,19 @@ export class RecombeeAddToCartAddition implements INodeType {
 				const itemId = this.getNodeParameter('itemId', i) as string;
 				const userId = this.getNodeParameter('userId', i) as string;
 				const amount = this.getNodeParameter('amount', i) as number;
-				const timestamp = this.getNodeParameter('timestamp', i) as string;
 				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
+				const timestampValue = this.getNodeParameter('timestamp', i);
+				let timestamp: string;
+				if (typeof timestampValue === 'string' || typeof timestampValue === 'number') {
+					const date = new Date(timestampValue);
+					timestamp = isNaN(date.getTime()) ? new Date().getTime().toString() : date.getTime().toString();
+				} else {
+					timestamp = new Date().getTime().toString();
+				}
 				const request = new requests.AddCartAddition(userId, itemId, { amount, timestamp, cascadeCreate });
 				request.timeout = timeout;
 				batchRequests.push(request);
-				processedItems.push({ itemId, userId, amount, timestamp, index: i });
+				processedItems.push({ itemId, userId, amount, timestamp, index: i, cascadeCreate });
 
 				if (batchRequests.length >= 100) {
 					await sendBatchWithRetry(batchRequests, processedItems);

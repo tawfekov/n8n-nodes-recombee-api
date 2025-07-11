@@ -81,7 +81,7 @@ export class RecombeeAddDetailView implements INodeType {
 
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 		let batchRequests: requests.Request[] = [];
-		const processedItems: any[] = [];
+		const processedItems: { itemId: string; userId: string; timestamp: string; index: number; cascadeCreate: boolean }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;
@@ -112,12 +112,19 @@ export class RecombeeAddDetailView implements INodeType {
 			for (let i = 0; i < items.length; i++) {
 				const itemId = this.getNodeParameter('itemId', i) as string;
 				const userId = this.getNodeParameter('userId', i) as string;
-				const timestamp = this.getNodeParameter('timestamp', i) as string;
+				const timestampValue = this.getNodeParameter('timestamp', i);
+				let timestamp: string;
+				if (typeof timestampValue === 'string' || typeof timestampValue === 'number') {
+					const date = new Date(timestampValue);
+					timestamp = isNaN(date.getTime()) ? new Date().getTime().toString() : date.getTime().toString();
+				} else {
+					timestamp = new Date().getTime().toString();
+				}
 				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
 				const request = new requests.AddDetailView(userId, itemId, { timestamp, cascadeCreate });
 				request.timeout = timeout;
 				batchRequests.push(request);
-				processedItems.push({ itemId, userId, timestamp, index: i });
+				processedItems.push({ itemId, userId, timestamp, index: i, cascadeCreate });
 
 				if (batchRequests.length >= 100) {
 					await sendBatchWithRetry(batchRequests, processedItems);
