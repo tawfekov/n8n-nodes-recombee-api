@@ -25,7 +25,7 @@ export class RecombeeRecommendNextItems implements INodeType {
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
 			{
-				displayName: 'RecommID',
+				displayName: 'Recommendation ID',
 				name: 'recommId',
 				type: 'string',
 				default: '',

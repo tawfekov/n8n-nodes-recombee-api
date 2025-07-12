@@ -67,9 +67,9 @@
 			"dist/nodes/DeleteViewPortion/RecombeeDeleteViewPortion.node.js",
 			"dist/nodes/ListUserViewPortions/RecombeeListUserViewPortions.node.js",
 			"dist/nodes/ListItemViewPortions/RecombeeListItemViewPortions.node.js",
-			"dist/nodes/RecommendNextItems/RecombeeRecommendNextItems.node.ts",
-			"dist/nodes/SearchItemSegments/RecombeeSearchItemSegments.node.ts",
-			"dist/nodes/RecommendItemSegmentsToUser/RecombeeRecommendItemSegmentsToUser.node.ts"
+			"dist/nodes/RecommendNextItems/RecombeeRecommendNextItems.node.js",
+			"dist/nodes/SearchItemSegments/RecombeeSearchItemSegments.node.js",
+			"dist/nodes/RecommendItemSegmentsToUser/RecombeeRecommendItemSegmentsToUser.node.js"
 		]
 	},
 	"devDependencies": {
