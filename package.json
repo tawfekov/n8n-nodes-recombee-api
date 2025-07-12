@@ -62,7 +62,11 @@
 			"dist/nodes/ResetDatabase/RecombeeResetDatabase.node.js",
 			"dist/nodes/SearchItems/RecombeeSearchItems.node.js",
 			"dist/nodes/SetItemValues/RecombeeSetItemValues.node.js",
-			"dist/nodes/SetUserValues/RecombeeSetUserValues.node.js"
+			"dist/nodes/SetUserValues/RecombeeSetUserValues.node.js",
+			"dist/nodes/SetViewPortion/RecombeeSetViewPortion.node.js",
+			"dist/nodes/DeleteViewPortion/RecombeeDeleteViewPortion.node.js",
+			"dist/nodes/ListUserViewPortions/RecombeeListUserViewPortions.node.js",
+			"dist/nodes/ListItemViewPortions/RecombeeListItemViewPortions.node.js"
 		]
 	},
 	"devDependencies": {

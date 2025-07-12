@@ -4,7 +4,7 @@ import {
 	INodeExecutionData,
 	IExecuteFunctions,
 	NodeOperationError,
-	NodeConnectionType,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
@@ -20,8 +20,8 @@ export class RecombeeListUsers implements INodeType {
 		defaults: {
 			name: 'ListUsers',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
 			{ displayName: 'Max Retries', name: 'maxRetries', type: 'number', default: 2, description: 'Number of times to retry failed batch requests' },

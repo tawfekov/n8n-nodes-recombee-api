@@ -4,7 +4,7 @@ import {
 	INodeExecutionData,
 	IExecuteFunctions,
 	NodeOperationError,
-	NodeConnectionType,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
@@ -20,8 +20,8 @@ export class RecombeeRecommendUsersToItem implements INodeType {
 		defaults: {
 			name: 'Recommend Users To Item',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
 			{
