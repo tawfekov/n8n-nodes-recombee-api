@@ -62,6 +62,13 @@ export class RecombeeAddBookmark implements INodeType {
 				default: 2,
 				description: 'Number of times to retry failed batch requests. Useful for handling temporary network issues or rate limits.',
 			},
+			{
+				displayName: 'Recommendation ID',
+				name: 'recommId',
+				type: 'string',
+				default: '',
+				description: 'Optional recommendation ID. If provided, the bookmark will be associated with the specified recommendation.',
+			}
 		],
 	};
 
@@ -114,7 +121,7 @@ export class RecombeeAddBookmark implements INodeType {
 			for (let i = 0; i < items.length; i++) {
 				const itemId = this.getNodeParameter('itemId', i) as string;
 				const userId = this.getNodeParameter('userId', i) as string;
-				const recommId = this.getNodeParameter('recommId', i) as string;
+				const recommId = this.getNodeParameter('recommId', i) as string || '';
 				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
 				const timestampValue = this.getNodeParameter('timestamp', i);
 				let timestamp: string;

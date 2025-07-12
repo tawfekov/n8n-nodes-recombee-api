@@ -70,6 +70,13 @@ export class RecombeeAddRating implements INodeType {
 				default: 2,
 				description: 'Number of times to retry failed batch requests. Useful for handling temporary network issues or rate limits.',
 			},
+			{
+				displayName: 'Recommendation ID',
+				name: 'recommId',
+				type: 'string',
+				default: '',
+				description: 'Optional recommendation ID. If provided, the bookmark will be associated with the specified recommendation.',
+			}
 		],
 	};
 
@@ -90,7 +97,7 @@ export class RecombeeAddRating implements INodeType {
 
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 		let batchRequests: requests.Request[] = [];
-		const processedItems: { itemId: string; userId: string; rating: number; timestamp: string; index: number; cascadeCreate: boolean }[] = [];
+		const processedItems: { itemId: string; userId: string; rating: number; timestamp: string; index: number; cascadeCreate: boolean, recommId?: string }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;
@@ -122,6 +129,8 @@ export class RecombeeAddRating implements INodeType {
 				const itemId = this.getNodeParameter('itemId', i) as string;
 				const userId = this.getNodeParameter('userId', i) as string;
 				const rating = this.getNodeParameter('rating', i) as number;
+				const recommId = this.getNodeParameter('recommId', i) as string || ''
+
 				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
 				const timestampValue = this.getNodeParameter('timestamp', i);
 				let timestamp: string;
@@ -131,11 +140,10 @@ export class RecombeeAddRating implements INodeType {
 				} else {
 					timestamp = new Date().getTime().toString();
 				}
-				const request = new requests.AddRating(userId, itemId, rating, { timestamp, cascadeCreate });
+				const request = new requests.AddRating(userId, itemId, rating, { timestamp, cascadeCreate, recommId });
 				request.timeout = timeout;
 				batchRequests.push(request);
-				processedItems.push({ itemId, userId, rating, timestamp, index: i, cascadeCreate });
-
+				processedItems.push({ itemId, userId, rating, timestamp, index: i, cascadeCreate, recommId });
 				if (batchRequests.length >= 100) {
 					await sendBatchWithRetry(batchRequests, processedItems);
 					batchRequests = [];

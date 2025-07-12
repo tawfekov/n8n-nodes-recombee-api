@@ -74,6 +74,7 @@ export class RecombeeListItems implements INodeType {
 
 		try {
 			for (let i = 0; i < items.length; i++) {
+				// @todo : this must be improved
 				const request = new requests.ListItems();
 				request.timeout = timeout;
 				batchRequests.push(request);
