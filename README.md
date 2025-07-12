@@ -77,23 +77,11 @@ Generates personalized item recommendations for a specific user based on their i
 
 Finds items similar to a given item, useful for "similar items" or "you might also like" features.
 
-#### Recommend Items to Item Segment
-
-Recommends items to users based on item segments, useful for category-based recommendations.
-
-#### Recommend Next Items
-
-Suggests the next items in a sequence, useful for content consumption or learning paths.
-
 ### Search Nodes
 
 #### Search Items
 
 Performs a search across your item catalog with support for filtering and boosting.
-
-#### Search Item Segments
-
-Searches through item segments with similar capabilities to item search.
 
 ### Batch Operations
 
@@ -261,14 +249,12 @@ This workflow helps an AI agent create personalized product bundles:
 ### Best Practices
 
 1. **Interaction Tracking**:
-
    - Use `Add Detail View` to record when users view items
    - Use `Add Purchase` to record completed transactions
    - Use `Add Rating` to collect explicit feedback
    - Use `Add Cart Addition` to track shopping behavior
 
 2. **Recommendation Generation**:
-
    - Use `Recommend Items to User` for personalized suggestions
    - Use `Recommend Items to Item` for related items
    - Use `Recommend Items to Item Segment` for segment-based recommendations
