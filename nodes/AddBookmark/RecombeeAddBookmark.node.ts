@@ -4,7 +4,7 @@ import {
 	INodeExecutionData,
 	IExecuteFunctions,
 	NodeOperationError,
-	NodeConnectionType,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
@@ -20,8 +20,8 @@ export class RecombeeAddBookmark implements INodeType {
 		defaults: {
 			name: 'AddBookmark',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
 			{
@@ -41,6 +41,14 @@ export class RecombeeAddBookmark implements INodeType {
 				description: 'The ID of the item that was bookmarked',
 			},
 			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
 				displayName: 'Timestamp',
 				name: 'timestamp',
 				type: 'dateTime',
@@ -54,6 +62,13 @@ export class RecombeeAddBookmark implements INodeType {
 				default: 2,
 				description: 'Number of times to retry failed batch requests. Useful for handling temporary network issues or rate limits.',
 			},
+			{
+				displayName: 'Recommendation ID',
+				name: 'recommId',
+				type: 'string',
+				default: '',
+				description: 'Optional recommendation ID. If provided, the bookmark will be associated with the specified recommendation.',
+			}
 		],
 	};
 
@@ -75,7 +90,7 @@ export class RecombeeAddBookmark implements INodeType {
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 
 		let batchRequests: requests.Request[] = [];
-		const processedItems: { userId: string; itemId: string; recommId: string; index: number }[] = [];
+		const processedItems: { userId: string; itemId: string; recommId: string; index: number, cascadeCreate: boolean, timestamp: string }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;
@@ -106,12 +121,20 @@ export class RecombeeAddBookmark implements INodeType {
 			for (let i = 0; i < items.length; i++) {
 				const itemId = this.getNodeParameter('itemId', i) as string;
 				const userId = this.getNodeParameter('userId', i) as string;
-				const recommId = this.getNodeParameter('recommId', i) as string;
-
-				const request = new requests.AddBookmark(userId, itemId, { recommId });
+				const recommId = this.getNodeParameter('recommId', i) as string || '';
+				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
+				const timestampValue = this.getNodeParameter('timestamp', i);
+				let timestamp: string;
+				if (typeof timestampValue === 'string' || typeof timestampValue === 'number') {
+					const date = new Date(timestampValue);
+					timestamp = isNaN(date.getTime()) ? new Date().getTime().toString() : date.getTime().toString();
+				} else {
+					timestamp = new Date().getTime().toString();
+				}
+				const request = new requests.AddBookmark(userId, itemId, { recommId, cascadeCreate, timestamp });
 				request.timeout = timeout;
 				batchRequests.push(request);
-				processedItems.push({ userId, itemId, recommId, index: i });
+				processedItems.push({ userId, itemId, recommId, index: i, cascadeCreate, timestamp });
 
 				if (batchRequests.length >= 100) {
 					await sendBatchWithRetry(batchRequests, processedItems);

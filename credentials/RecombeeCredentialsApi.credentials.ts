@@ -1,6 +1,4 @@
 import {
-	IAuthenticateGeneric,
-	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
 	Icon,
@@ -40,21 +38,4 @@ export class RecombeeCredentialsApi implements ICredentialType {
 			default: 10000,
 		},
 	];
-
-	authenticate: IAuthenticateGeneric = {
-		type: 'generic',
-		properties: {
-			headers: {
-				Authorization:
-					'Basic {{ Buffer.from($credentials.recombee_database_private_token + ":").toString("base64") }}',
-			},
-		},
-	};
-
-	test: ICredentialTestRequest = {
-		request: {
-			method: 'GET',
-			url: '={{ "https://rapi-" + $credentials.recombee_database_region + ".recombee.com" + "/clients/" + $credentials.recombee_database_id + "/users" }}',
-		},
-	};
 }

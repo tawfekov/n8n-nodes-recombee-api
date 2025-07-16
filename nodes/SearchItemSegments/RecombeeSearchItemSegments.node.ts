@@ -8,17 +8,17 @@ import {
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
-export class RecombeeSearchItems implements INodeType {
+export class RecombeeSearchItemSegments implements INodeType {
 	description: INodeTypeDescription = {
 		usableAsTool: true,
-		displayName: 'Recombee SearchItems',
-		name: 'recombeeSearchItems',
+		displayName: 'Recombee SearchItem Segments',
+		name: 'recombeeSearchItemSegments',
 		icon: 'file:../RecombeeNode.svg',
 		group: ['transform'],
 		version: 1,
-		description: 'SearchItems operation from Recombee',
+		description: 'SearchItemSegments operation from Recombee',
 		defaults: {
-			name: 'SearchItems',
+			name: 'SearchItem Segments',
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
@@ -53,7 +53,6 @@ export class RecombeeSearchItems implements INodeType {
 				name: 'scenario',
 				type: 'string',
 				default: '',
-				required: true,
 				description: 'The scenario to search for',
 			},
 			{
@@ -63,6 +62,27 @@ export class RecombeeSearchItems implements INodeType {
 				default: false,
 				required: true,
 				description: 'Whether to create the item if it does not exist',
+			},
+			{
+				displayName: 'Filter',
+				name: 'filter',
+				type: 'string',
+				default: '',
+				description: 'The filter to apply to the search',
+			},
+			{
+				displayName: 'Booster',
+				name: 'booster',
+				type: 'string',
+				default: '',
+				description: 'The booster to apply to the search',
+			},
+			{
+				displayName: 'Logic',
+				name: 'logic',
+				type: 'json',
+				default: '{}',
+				description: 'The logic to apply to the search',
 			},
 			{
 				displayName: 'Max Retries',
@@ -98,7 +118,7 @@ export class RecombeeSearchItems implements INodeType {
 
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 		let batchRequests: requests.Request[] = [];
-		const processedItems: any[] = [];
+		const processedItems: { userId: string; query: string; count: number; scenario: string; index: number; filter: string; booster: string; logic: Record<string, any> }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;
@@ -135,10 +155,13 @@ export class RecombeeSearchItems implements INodeType {
 				const count = this.getNodeParameter('count', i) as number;
 				const scenario = this.getNodeParameter('scenario', i) as string;
 				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
-				const request = new requests.SearchItems(userId, query, count, { scenario, cascadeCreate });
+				const filter = this.getNodeParameter('filter', i) as string;
+				const booster = this.getNodeParameter('booster', i) as string;
+				const logic = this.getNodeParameter('logic', i) as Record<string, any>;
+				const request = new requests.SearchItemSegments(userId, query, count, { scenario, cascadeCreate, filter, booster, logic });
 				request.timeout = timeout;
 				batchRequests.push(request);
-				processedItems.push({ userId, query, count, scenario, index: i });
+				processedItems.push({ userId, query, count, scenario, index: i, filter, booster, logic });
 
 				if (batchRequests.length >= 100) {
 					await sendBatchWithRetry(batchRequests, processedItems);

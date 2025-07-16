@@ -8,80 +8,51 @@ import {
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
-export class RecombeeRecommendItemsToUser implements INodeType {
+export class RecombeeRecommendNextItems implements INodeType {
 	description: INodeTypeDescription = {
 		usableAsTool: true,
-		displayName: 'Recombee RecommendItemsToUser',
-		name: 'recombeeRecommendItemsToUser',
+		displayName: 'Recombee RecommendNextItems',
+		name: 'recombeeRecommendNextItems',
 		icon: 'file:../RecombeeNode.svg',
 		group: ['transform'],
 		version: 1,
-		description: 'Generates personalized item recommendations for a specific user based on their interaction history and preferences. This is the core recommendation operation that powers personalized suggestions',
+		description: 'RecommendNextItems operation from Recombee with batching',
 		defaults: {
-			name: 'Recommend Items To User',
+			name: 'Recommend Next Items',
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
 			{
-				displayName: 'User ID',
-				name: 'userId',
+				displayName: 'Recommendation ID',
+				name: 'recommId',
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'The ID of the user to get recommendations for',
-			},
-			{
-				displayName: 'Return Properties',
-				name: 'returnProperties',
-				type: 'boolean',
-				default: true,
-				required: true,
-				description: 'Whether to return the properties of the items',
+				description: 'The ID of the previous recommendation',
 			},
 			{
 				displayName: 'Count',
 				name: 'count',
 				type: 'number',
-				default: 10,
-				description: 'Number of recommendations to return',
-			},
-			{
-				displayName: 'Scenario',
-				name: 'scenario',
-				type: 'string',
-				default: '',
-				description: 'Optional scenario name to use for recommendations',
-			},
-			{
-				displayName: 'Filter',
-				name: 'filter',
-				type: 'string',
-				default: '',
-				description: 'Optional ReQL filter expression to filter recommendations , currently unused : https://docs.recombee.com/reql_filtering_and_boosting#reql-filtering',
-			},
-			{
-				displayName: 'Cascade Create',
-				name: 'cascadeCreate',
-				type: 'boolean',
-				default: false,
+				default: 100,
 				required: true,
-				description: 'Whether to create the item if it does not exist',
+				description: 'The number of recommended items to return',
+			},
+			{
+				displayName: 'Timeout (Ms)',
+				name: 'timeout',
+				type: 'number',
+				default: 10000,
+				description: 'Request timeout in milliseconds',
 			},
 			{
 				displayName: 'Max Retries',
 				name: 'maxRetries',
 				type: 'number',
 				default: 2,
-				description: 'Number of times to retry failed batch requests. Useful for handling temporary network issues or rate limits.',
-			},
-			{
-				displayName: 'Batch Size',
-				name: 'batchSize',
-				type: 'number',
-				default: 10,
-				description: 'Number of requests per batch',
+				description: 'Number of retry attempts on failure',
 			},
 		],
 	};
@@ -119,16 +90,13 @@ export class RecombeeRecommendItemsToUser implements INodeType {
 			const batchPromises = batchItems.map(async (item, index) => {
 				const itemIndex = i + index;
 				try {
-					const userId = this.getNodeParameter('userId', itemIndex) as string;
+					const recommId = this.getNodeParameter('recommId', itemIndex) as string;
 					const count = this.getNodeParameter('count', itemIndex) as number;
-					const scenario = this.getNodeParameter('scenario', itemIndex) as string;
-					const returnProperties = this.getNodeParameter('returnProperties', itemIndex) as boolean;
-					const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', itemIndex) as boolean || false;
-					const request = new requests.RecommendItemsToUser(userId, count, { scenario, returnProperties, cascadeCreate });
+					const request = new requests.RecommendNextItems(recommId, count);
 					request.timeout = timeout;
 
 					const data = await sendWithRetry(request, maxRetries);
-					return { json: { success: true, userId, count, scenario, returnProperties, data } };
+					return { json: { success: true, recommId, count, data } };
 				} catch (error) {
 					if (this.continueOnFail()) {
 						return { json: { success: false, error: error.message }, pairedItem: itemIndex };

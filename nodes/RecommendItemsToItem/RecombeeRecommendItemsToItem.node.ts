@@ -4,7 +4,7 @@ import {
 	INodeExecutionData,
 	IExecuteFunctions,
 	NodeOperationError,
-	NodeConnectionType,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
@@ -20,19 +20,77 @@ export class RecombeeRecommendItemsToItem implements INodeType {
 		defaults: {
 			name: 'Recommend Items To Item',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
-			{ displayName: 'Item ID', name: 'itemId', type: 'string', default: '', required: true },
-			{ displayName: 'Return Properties', name: 'returnProperties', type: 'boolean', default: true, required: true },
-			{ displayName: 'User ID', name: 'userId', type: 'string', default: '', required: true },
-			{ displayName: 'Filter', name: 'filter', type: 'string', default: '', description: 'Currently Unused , Docs : https://docs.recombee.com/reql_filtering_and_boosting#reql-filtering' },
-			{ displayName: 'Count', name: 'count', type: 'number', default: 100, required: true },
-			{ displayName: 'Scenario', name: 'scenario', type: 'string', default: '' },
-			{ displayName: 'Batch Size', name: 'batchSize', type: 'number', default: 10, description: 'Number of requests per batch' },
-			{ displayName: 'Max Retries', name: 'maxRetries', type: 'number', default: 2, description: 'Number of retry attempts on failure' },
-			{ displayName: 'Timeout (Ms)', name: 'timeout', type: 'number', default: 10000, description: 'Request timeout in milliseconds' },
+			{
+				displayName: 'Item ID',
+				name: 'itemId',
+				type: 'string',
+				default: '',
+				required: true,
+				description: 'The ID of the item to recommend to',
+			},
+			{
+				displayName: 'Return Properties',
+				name: 'returnProperties',
+				type: 'boolean',
+				default: true,
+				required: true,
+				description: 'Whether to return the properties of the recommended items',
+			},
+			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
+				displayName: 'Filter',
+				name: 'filter',
+				type: 'string',
+				default: '',
+				description: 'Currently Unused , Docs : https://docs.recombee.com/reql_filtering_and_boosting#reql-filtering',
+			},
+			{
+				displayName: 'Count',
+				name: 'count',
+				type: 'number',
+				default: 100,
+				required: true,
+				description: 'The number of recommended items to return',
+			},
+			{
+				displayName: 'Scenario',
+				name: 'scenario',
+				type: 'string',
+				default: '',
+				description: 'The scenario to recommend items for',
+			},
+			{
+				displayName: 'Batch Size',
+				name: 'batchSize',
+				type: 'number',
+				default: 10,
+				description: 'Number of requests per batch',
+			},
+			{
+				displayName: 'Timeout (Ms)',
+				name: 'timeout',
+				type: 'number',
+				default: 10000,
+				description: 'Request timeout in milliseconds',
+			},
+			{
+				displayName: 'Max Retries',
+				name: 'maxRetries',
+				type: 'number',
+				default: 2,
+				description: 'Number of retry attempts on failure',
+			},
 		],
 	};
 
@@ -75,8 +133,8 @@ export class RecombeeRecommendItemsToItem implements INodeType {
 					const count = this.getNodeParameter('count', itemIndex) as number;
 					const scenario = this.getNodeParameter('scenario', itemIndex) as string;
 					const returnProperties = this.getNodeParameter('returnProperties', itemIndex) as boolean;
-
-					const request = new requests.RecommendItemsToItem(itemId, userId, count, { scenario, returnProperties });
+					const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', itemIndex) as boolean || false;
+					const request = new requests.RecommendItemsToItem(itemId, userId, count, { scenario, returnProperties, cascadeCreate });
 					request.timeout = timeout;
 
 					const data = await sendWithRetry(request, maxRetries);

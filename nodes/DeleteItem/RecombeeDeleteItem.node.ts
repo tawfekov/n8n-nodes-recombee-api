@@ -4,7 +4,7 @@ import {
 	INodeExecutionData,
 	IExecuteFunctions,
 	NodeOperationError,
-	NodeConnectionType,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
@@ -20,8 +20,8 @@ export class RecombeeDeleteItem implements INodeType {
 		defaults: {
 			name: 'DeleteItem',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
 			{ displayName: 'Item ID', name: 'itemId', type: 'string', default: '', required: true },

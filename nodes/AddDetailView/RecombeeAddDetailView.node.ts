@@ -4,7 +4,7 @@ import {
 	INodeExecutionData,
 	IExecuteFunctions,
 	NodeOperationError,
-	NodeConnectionType,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
@@ -20,8 +20,8 @@ export class RecombeeAddDetailView implements INodeType {
 		defaults: {
 			name: 'AddDetailView',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
 			{
@@ -41,6 +41,14 @@ export class RecombeeAddDetailView implements INodeType {
 				description: 'The ID of the item that was viewed',
 			},
 			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
 				displayName: 'Timestamp',
 				name: 'timestamp',
 				type: 'dateTime',
@@ -54,6 +62,13 @@ export class RecombeeAddDetailView implements INodeType {
 				default: 2,
 				description: 'Number of times to retry failed batch requests. Useful for handling temporary network issues or rate limits.',
 			},
+			{
+				displayName: 'Recommendation ID',
+				name: 'recommId',
+				type: 'string',
+				default: '',
+				description: 'Optional recommendation ID. If provided, the detail view will be associated with the specified recommendation.',
+			}
 		],
 	};
 
@@ -61,7 +76,6 @@ export class RecombeeAddDetailView implements INodeType {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 		const credentials = await this.getCredentials('recombeeCredentialsApi');
-
 		const timeout = Number.isFinite(parseInt(credentials.recombee_api_timeout.toString()))
 			? parseInt(credentials.recombee_api_timeout.toString())
 			: 10000;
@@ -74,7 +88,7 @@ export class RecombeeAddDetailView implements INodeType {
 
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 		let batchRequests: requests.Request[] = [];
-		const processedItems: any[] = [];
+		const processedItems: { itemId: string; userId: string; timestamp: string; index: number; cascadeCreate: boolean, recommId?: string }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;
@@ -105,11 +119,20 @@ export class RecombeeAddDetailView implements INodeType {
 			for (let i = 0; i < items.length; i++) {
 				const itemId = this.getNodeParameter('itemId', i) as string;
 				const userId = this.getNodeParameter('userId', i) as string;
-				const timestamp = this.getNodeParameter('timestamp', i) as string;
-				const request = new requests.AddDetailView(userId, itemId, { timestamp });
+				const recommId = this.getNodeParameter('recommId', i) as string || '';
+				const timestampValue = this.getNodeParameter('timestamp', i);
+				let timestamp: string;
+				if (typeof timestampValue === 'string' || typeof timestampValue === 'number') {
+					const date = new Date(timestampValue);
+					timestamp = isNaN(date.getTime()) ? new Date().getTime().toString() : date.getTime().toString();
+				} else {
+					timestamp = new Date().getTime().toString();
+				}
+				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
+				const request = new requests.AddDetailView(userId, itemId, { timestamp, cascadeCreate, recommId });
 				request.timeout = timeout;
 				batchRequests.push(request);
-				processedItems.push({ itemId, userId, timestamp, index: i });
+				processedItems.push({ itemId, userId, timestamp, index: i, cascadeCreate, recommId });
 
 				if (batchRequests.length >= 100) {
 					await sendBatchWithRetry(batchRequests, processedItems);

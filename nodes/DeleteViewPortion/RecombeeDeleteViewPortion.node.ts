@@ -8,75 +8,59 @@ import {
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
-export class RecombeeSearchItems implements INodeType {
+export class RecombeeDeleteViewPortion implements INodeType {
 	description: INodeTypeDescription = {
 		usableAsTool: true,
-		displayName: 'Recombee SearchItems',
-		name: 'recombeeSearchItems',
+		displayName: 'Recombee DeleteViewPortion',
+		name: 'recombeeDeleteViewPortion',
 		icon: 'file:../RecombeeNode.svg',
 		group: ['transform'],
 		version: 1,
-		description: 'SearchItems operation from Recombee',
+		description: 'Deletes the viewed portion of an item (for example a video or article) by a user (at a session id).',
 		defaults: {
-			name: 'SearchItems',
+			name: 'DeleteViewPortion',
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
 			{
-				displayName: 'Query',
-				name: 'query',
-				type: 'string',
-				default: '',
-				required: true,
-				description: 'The query to search for',
-			},
-			{
 				displayName: 'User ID',
 				name: 'userId',
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'The ID of the user to search for',
+				description: 'The ID of the user to update',
 			},
 			{
-				displayName: 'Count',
-				name: 'count',
-				type: 'number',
-				default: 100,
-				required: true,
-				description: 'The number of items to return',
-			},
-			{
-				displayName: 'Scenario',
-				name: 'scenario',
+				displayName: 'Item ID',
+				name: 'itemId',
 				type: 'string',
 				default: '',
 				required: true,
-				description: 'The scenario to search for',
+				description: 'The ID of the item to update',
 			},
 			{
-				displayName: 'Cascade Create',
-				name: 'cascadeCreate',
-				type: 'boolean',
-				default: false,
+				displayName: 'Session ID',
+				name: 'sessionId',
+				type: 'string',
+				default: '',
 				required: true,
-				description: 'Whether to create the item if it does not exist',
+				description: 'The ID of the session to update',
+			},
+			{
+				displayName: 'Recommendation ID',
+				name: 'recommId',
+				type: 'string',
+				default: '',
+				description: 'Optional recommendation ID. If provided, the portion view value will be associated with the specified recommendation.',
 			},
 			{
 				displayName: 'Max Retries',
 				name: 'maxRetries',
 				type: 'number',
 				default: 2,
-				description: 'Number of times to retry failed batch requests',
-			},
-			{
-				displayName: 'Timeout (Ms)',
-				name: 'timeout',
-				type: 'number',
-				default: 10000,
-				description: 'Request timeout in milliseconds',
+				description: 'Number of times to retry failed batch requests. Useful for handling temporary network issues or rate limits.',
 			},
 		],
 	};
@@ -98,7 +82,7 @@ export class RecombeeSearchItems implements INodeType {
 
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 		let batchRequests: requests.Request[] = [];
-		const processedItems: any[] = [];
+		const processedItems: { userId: string; itemId: string; sessionId: string; index: number }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;
@@ -120,25 +104,22 @@ export class RecombeeSearchItems implements INodeType {
 						throw new NodeOperationError(this.getNode(), res.error);
 					}
 				} else {
-					returnData.push({ json: { success: true, ...itemsMeta[idx], searchResult: res } });
+					returnData.push({ json: { success: true, ...itemsMeta[idx], userData: res } });
 				}
 			});
 		};
 
 		try {
 			for (let i = 0; i < items.length; i++) {
-				const query = this.getNodeParameter('query', i) as string;
-				if (query.length <= 0) {
-					throw new NodeOperationError(this.getNode(), `Query can't be an empty string; you provided "${query}"`);
-				}
 				const userId = this.getNodeParameter('userId', i) as string;
-				const count = this.getNodeParameter('count', i) as number;
-				const scenario = this.getNodeParameter('scenario', i) as string;
-				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
-				const request = new requests.SearchItems(userId, query, count, { scenario, cascadeCreate });
+				const itemId = this.getNodeParameter('itemId', i) as string;
+				const sessionId = this.getNodeParameter('sessionId', i) as string;
+				const request = new requests.DeleteViewPortion(userId, itemId, {
+					sessionId,
+				});
 				request.timeout = timeout;
 				batchRequests.push(request);
-				processedItems.push({ userId, query, count, scenario, index: i });
+				processedItems.push({ userId, itemId, sessionId, index: i });
 
 				if (batchRequests.length >= 100) {
 					await sendBatchWithRetry(batchRequests, processedItems);

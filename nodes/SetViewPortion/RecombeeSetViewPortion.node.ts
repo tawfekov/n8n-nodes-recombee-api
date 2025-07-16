@@ -8,17 +8,17 @@ import {
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
-export class RecombeeSetUserValues implements INodeType {
+export class RecombeeSetViewPortion implements INodeType {
 	description: INodeTypeDescription = {
 		usableAsTool: true,
-		displayName: 'Recombee SetUserValues',
-		name: 'recombeeSetUserValues',
+		displayName: 'Recombee SetViewPortion',
+		name: 'recombeeSetViewPortion',
 		icon: 'file:../RecombeeNode.svg',
 		group: ['transform'],
 		version: 1,
-		description: 'Sets or updates properties for a specific user. Properties can include any user-related information like preferences, demographics, or behavioral data. This operation is essential for maintaining up-to-date user profiles',
+		description: 'Sets viewed portion of an item (for example a video or article) by a user (at a session). If you send a new request with the same (userId, itemId, sessionId), the portion gets updated.',
 		defaults: {
-			name: 'SetUserValues',
+			name: 'SetViewPortion',
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
@@ -33,12 +33,35 @@ export class RecombeeSetUserValues implements INodeType {
 				description: 'The ID of the user to update',
 			},
 			{
-				displayName: 'Values',
-				name: 'values',
-				type: 'json',
-				default: '{}',
+				displayName: 'Item ID',
+				name: 'itemId',
+				type: 'string',
+				default: '',
 				required: true,
-				description: 'JSON object containing user properties to set or update',
+				description: 'The ID of the item to update',
+			},
+			{
+				displayName: 'Portion',
+				name: 'portion',
+				type: 'number',
+				default: 0,
+				required: true,
+				description: 'The portion viewed of the item to update',
+			},
+			{
+				displayName: 'Session ID',
+				name: 'sessionId',
+				type: 'string',
+				default: '',
+				required: true,
+				description: 'The ID of the session to update',
+			},
+			{
+				displayName: 'Timestamp',
+				name: 'timestamp',
+				type: 'dateTime',
+				default: '',
+				description: 'Optional timestamp of when the view occurred. If not provided, the current time will be used.',
 			},
 			{
 				displayName: 'Cascade Create',
@@ -47,6 +70,21 @@ export class RecombeeSetUserValues implements INodeType {
 				default: true,
 				required: true,
 				description: 'Whether to create the user if it does not exist',
+			},
+			{
+				displayName: 'Recommendation ID',
+				name: 'recommId',
+				type: 'string',
+				default: '',
+				description: 'Optional recommendation ID. If provided, the portion view value will be associated with the specified recommendation.',
+			},
+			{
+				displayName: 'Additional Data',
+				name: 'additionalData',
+				type: 'json',
+				default: '{}',
+				required: true,
+				description: 'JSON object containing additional data to set or update',
 			},
 			{
 				displayName: 'Max Retries',
@@ -75,7 +113,7 @@ export class RecombeeSetUserValues implements INodeType {
 
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 		let batchRequests: requests.Request[] = [];
-		const processedItems: any[] = [];
+		const processedItems: { userId: string; itemId: string; portion: number; sessionId: string; additionalData: Record<string, any>; cascadeCreate: boolean; recommId: string; timestamp: string; index: number }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;
@@ -105,18 +143,30 @@ export class RecombeeSetUserValues implements INodeType {
 		try {
 			for (let i = 0; i < items.length; i++) {
 				const userId = this.getNodeParameter('userId', i) as string;
-				const values = JSON.parse(this.getNodeParameter('values', i) as string) as Record<string, any>;
-				const cascadeCreate = this.getNodeParameter('cascadeCreate', i) as Boolean || true;
-				if (Object.keys(values).length === 0) {
-					throw new NodeOperationError(this.getNode(), 'Values cannot be empty');
+				const itemId = this.getNodeParameter('itemId', i) as string;
+				const portion = this.getNodeParameter('portion', i) as number;
+				const sessionId = this.getNodeParameter('sessionId', i) as string;
+				const additionalData = JSON.parse(this.getNodeParameter('additionalData', i) as string) as Record<string, any>;
+				const cascadeCreate = this.getNodeParameter('cascadeCreate', i) as boolean || true;
+				const recommId = this.getNodeParameter('recommId', i) as string || '';
+				const timestampValue = this.getNodeParameter('timestamp', i);
+				let timestamp: string;
+				if (typeof timestampValue === 'string' || typeof timestampValue === 'number') {
+					const date = new Date(timestampValue);
+					timestamp = isNaN(date.getTime()) ? new Date().getTime().toString() : date.getTime().toString();
+				} else {
+					timestamp = new Date().getTime().toString();
 				}
-
-				const request = new requests.SetUserValues(userId, values, {
-					cascadeCreate: cascadeCreate as boolean,
+				const request = new requests.SetViewPortion(userId, itemId, portion, {
+					sessionId,
+					cascadeCreate,
+					recommId,
+					timestamp,
+					additionalData
 				});
 				request.timeout = timeout;
 				batchRequests.push(request);
-				processedItems.push({ userId, values, cascadeCreate, index: i });
+				processedItems.push({ userId, itemId, portion, sessionId, additionalData, cascadeCreate, recommId, timestamp, index: i });
 
 				if (batchRequests.length >= 100) {
 					await sendBatchWithRetry(batchRequests, processedItems);

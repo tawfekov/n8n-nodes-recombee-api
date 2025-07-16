@@ -8,17 +8,17 @@ import {
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
-export class RecombeeRecommendItemsToUser implements INodeType {
+export class RecombeeRecommendItemSegmentsToUser implements INodeType {
 	description: INodeTypeDescription = {
 		usableAsTool: true,
-		displayName: 'Recombee RecommendItemsToUser',
-		name: 'recombeeRecommendItemsToUser',
+		displayName: 'Recombee RecommendItemSegmentsToUser',
+		name: 'recombeeRecommendItemSegmentsToUser',
 		icon: 'file:../RecombeeNode.svg',
 		group: ['transform'],
 		version: 1,
-		description: 'Generates personalized item recommendations for a specific user based on their interaction history and preferences. This is the core recommendation operation that powers personalized suggestions',
+		description: 'RecommendItemSegmentsToUser operation from Recombee with batching',
 		defaults: {
-			name: 'Recommend Items To User',
+			name: 'Recommend ItemSegments To User',
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
@@ -33,33 +33,12 @@ export class RecombeeRecommendItemsToUser implements INodeType {
 				description: 'The ID of the user to get recommendations for',
 			},
 			{
-				displayName: 'Return Properties',
-				name: 'returnProperties',
-				type: 'boolean',
-				default: true,
-				required: true,
-				description: 'Whether to return the properties of the items',
-			},
-			{
 				displayName: 'Count',
 				name: 'count',
 				type: 'number',
-				default: 10,
-				description: 'Number of recommendations to return',
-			},
-			{
-				displayName: 'Scenario',
-				name: 'scenario',
-				type: 'string',
-				default: '',
-				description: 'Optional scenario name to use for recommendations',
-			},
-			{
-				displayName: 'Filter',
-				name: 'filter',
-				type: 'string',
-				default: '',
-				description: 'Optional ReQL filter expression to filter recommendations , currently unused : https://docs.recombee.com/reql_filtering_and_boosting#reql-filtering',
+				default: 100,
+				required: true,
+				description: 'The number of recommended items to return',
 			},
 			{
 				displayName: 'Cascade Create',
@@ -70,11 +49,33 @@ export class RecombeeRecommendItemsToUser implements INodeType {
 				description: 'Whether to create the item if it does not exist',
 			},
 			{
-				displayName: 'Max Retries',
-				name: 'maxRetries',
-				type: 'number',
-				default: 2,
-				description: 'Number of times to retry failed batch requests. Useful for handling temporary network issues or rate limits.',
+				displayName: 'Filter',
+				name: 'filter',
+				type: 'string',
+				default: '',
+				description: 'Currently Unused , Docs : https://docs.recombee.com/reql_filtering_and_boosting#reql-filtering',
+			},
+
+			{
+				displayName: 'Scenario',
+				name: 'scenario',
+				type: 'string',
+				default: '',
+				description: 'The scenario to recommend items for',
+			},
+			{
+				displayName: 'Booster',
+				name: 'booster',
+				type: 'string',
+				default: '',
+				description: 'The booster to apply to the search',
+			},
+			{
+				displayName: 'Logic',
+				name: 'logic',
+				type: 'json',
+				default: '{}',
+				description: 'The logic to apply to the search',
 			},
 			{
 				displayName: 'Batch Size',
@@ -82,6 +83,20 @@ export class RecombeeRecommendItemsToUser implements INodeType {
 				type: 'number',
 				default: 10,
 				description: 'Number of requests per batch',
+			},
+			{
+				displayName: 'Timeout (Ms)',
+				name: 'timeout',
+				type: 'number',
+				default: 10000,
+				description: 'Request timeout in milliseconds',
+			},
+			{
+				displayName: 'Max Retries',
+				name: 'maxRetries',
+				type: 'number',
+				default: 2,
+				description: 'Number of retry attempts on failure',
 			},
 		],
 	};
@@ -122,13 +137,15 @@ export class RecombeeRecommendItemsToUser implements INodeType {
 					const userId = this.getNodeParameter('userId', itemIndex) as string;
 					const count = this.getNodeParameter('count', itemIndex) as number;
 					const scenario = this.getNodeParameter('scenario', itemIndex) as string;
-					const returnProperties = this.getNodeParameter('returnProperties', itemIndex) as boolean;
+					const filter = this.getNodeParameter('filter', itemIndex) as string;
+					const booster = this.getNodeParameter('booster', itemIndex) as string;
+					const logic = this.getNodeParameter('logic', itemIndex) as Record<string, any>;
 					const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', itemIndex) as boolean || false;
-					const request = new requests.RecommendItemsToUser(userId, count, { scenario, returnProperties, cascadeCreate });
+					const request = new requests.RecommendItemSegmentsToUser(userId, count, { scenario, filter, booster, logic, cascadeCreate });
 					request.timeout = timeout;
 
 					const data = await sendWithRetry(request, maxRetries);
-					return { json: { success: true, userId, count, scenario, returnProperties, data } };
+					return { json: { success: true, userId, count, scenario, filter, booster, logic, data } };
 				} catch (error) {
 					if (this.continueOnFail()) {
 						return { json: { success: false, error: error.message }, pairedItem: itemIndex };

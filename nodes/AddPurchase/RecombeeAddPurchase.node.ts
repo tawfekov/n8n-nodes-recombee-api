@@ -4,7 +4,7 @@ import {
 	INodeExecutionData,
 	IExecuteFunctions,
 	NodeOperationError,
-	NodeConnectionType,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
@@ -20,8 +20,8 @@ export class RecombeeAddPurchase implements INodeType {
 		defaults: {
 			name: 'AddPurchase',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
 			{
@@ -48,6 +48,14 @@ export class RecombeeAddPurchase implements INodeType {
 				description: 'Optional amount of items purchased. Default is 1.',
 			},
 			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
 				displayName: 'Timestamp',
 				name: 'timestamp',
 				type: 'dateTime',
@@ -61,6 +69,13 @@ export class RecombeeAddPurchase implements INodeType {
 				default: 2,
 				description: 'Number of times to retry failed batch requests. Useful for handling temporary network issues or rate limits.',
 			},
+			{
+				displayName: 'Recommendation ID',
+				name: 'recommId',
+				type: 'string',
+				default: '',
+				description: 'Optional recommendation ID. If provided, the bookmark will be associated with the specified recommendation.',
+			}
 		],
 	};
 
@@ -81,7 +96,7 @@ export class RecombeeAddPurchase implements INodeType {
 
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 		let batchRequests: requests.Request[] = [];
-		const processedItems: any[] = [];
+		const processedItems: { itemId: string; userId: string; amount: number; timestamp: string; index: number; cascadeCreate: boolean, recommId?: string }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;
@@ -113,11 +128,20 @@ export class RecombeeAddPurchase implements INodeType {
 				const itemId = this.getNodeParameter('itemId', i) as string;
 				const userId = this.getNodeParameter('userId', i) as string;
 				const amount = this.getNodeParameter('amount', i) as number;
-				const timestamp = this.getNodeParameter('timestamp', i) as string;
-				const request = new requests.AddPurchase(userId, itemId, { amount, timestamp });
+				const recommId = this.getNodeParameter('recommId', i) as string ?? ''
+				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
+				const timestampValue = this.getNodeParameter('timestamp', i);
+				let timestamp: string;
+				if (typeof timestampValue === 'string' || typeof timestampValue === 'number') {
+					const date = new Date(timestampValue);
+					timestamp = isNaN(date.getTime()) ? new Date().getTime().toString() : date.getTime().toString();
+				} else {
+					timestamp = new Date().getTime().toString();
+				}
+				const request = new requests.AddPurchase(userId, itemId, { amount, timestamp, cascadeCreate, recommId });
 				request.timeout = timeout;
 				batchRequests.push(request);
-				processedItems.push({ itemId, userId, amount, timestamp, index: i });
+				processedItems.push({ itemId, userId, amount, timestamp, index: i, cascadeCreate, recommId });
 
 				if (batchRequests.length >= 100) {
 					await sendBatchWithRetry(batchRequests, processedItems);

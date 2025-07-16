@@ -4,7 +4,7 @@ import {
 	INodeExecutionData,
 	IExecuteFunctions,
 	NodeOperationError,
-	NodeConnectionType,
+	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
 
@@ -20,12 +20,33 @@ export class RecombeeAddSeries implements INodeType {
 		defaults: {
 			name: 'AddSeries',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'recombeeCredentialsApi', required: true }],
 		properties: [
-			{ displayName: 'Series ID', name: 'seriesId', type: 'string', default: '', required: true },
-			{ displayName: 'Max Retries', name: 'maxRetries', type: 'number', default: 2, description: 'Number of times to retry failed batch requests' },
+			{
+				displayName: 'Series ID',
+				name: 'seriesId',
+				type: 'string',
+				default: '',
+				required: true,
+				description: 'The ID of the series to be created',
+			},
+			{
+				displayName: 'Cascade Create',
+				name: 'cascadeCreate',
+				type: 'boolean',
+				default: false,
+				required: true,
+				description: 'Whether to create the item if it does not exist',
+			},
+			{
+				displayName: 'Max Retries',
+				name: 'maxRetries',
+				type: 'number',
+				default: 2,
+				description: 'Number of times to retry failed batch requests',
+			},
 		],
 	};
 
@@ -76,7 +97,8 @@ export class RecombeeAddSeries implements INodeType {
 		try {
 			for (let i = 0; i < items.length; i++) {
 				const seriesId = this.getNodeParameter('seriesId', i) as string;
-				const request = new requests.AddSeries(seriesId);
+				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
+				const request = new requests.AddSeries(seriesId, { cascadeCreate });
 				request.timeout = timeout;
 				batchRequests.push(request);
 				processedItems.push({ seriesId, index: i });
