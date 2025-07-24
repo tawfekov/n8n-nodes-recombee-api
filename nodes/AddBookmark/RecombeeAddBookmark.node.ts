@@ -7,6 +7,7 @@ import {
 	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
+import { toEpochTimestamp } from '../Utils/timestamp';
 
 export class RecombeeAddBookmark implements INodeType {
 	description: INodeTypeDescription = {
@@ -124,13 +125,7 @@ export class RecombeeAddBookmark implements INodeType {
 				const recommId = this.getNodeParameter('recommId', i) as string || '';
 				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
 				const timestampValue = this.getNodeParameter('timestamp', i);
-				let timestamp: string;
-				if (typeof timestampValue === 'string' || typeof timestampValue === 'number') {
-					const date = new Date(timestampValue);
-					timestamp = isNaN(date.getTime()) ? new Date().getTime().toString() : date.getTime().toString();
-				} else {
-					timestamp = new Date().getTime().toString();
-				}
+				const timestamp = toEpochTimestamp(timestampValue);
 				const request = new requests.AddBookmark(userId, itemId, { recommId, cascadeCreate, timestamp });
 				request.timeout = timeout;
 				batchRequests.push(request);

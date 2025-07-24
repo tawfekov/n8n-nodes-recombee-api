@@ -7,6 +7,7 @@ import {
 	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
+import { toEpochTimestamp } from '../Utils/timestamp';
 
 export class RecombeeSetViewPortion implements INodeType {
 	description: INodeTypeDescription = {
@@ -150,13 +151,7 @@ export class RecombeeSetViewPortion implements INodeType {
 				const cascadeCreate = this.getNodeParameter('cascadeCreate', i) as boolean || true;
 				const recommId = this.getNodeParameter('recommId', i) as string || '';
 				const timestampValue = this.getNodeParameter('timestamp', i);
-				let timestamp: string;
-				if (typeof timestampValue === 'string' || typeof timestampValue === 'number') {
-					const date = new Date(timestampValue);
-					timestamp = isNaN(date.getTime()) ? new Date().getTime().toString() : date.getTime().toString();
-				} else {
-					timestamp = new Date().getTime().toString();
-				}
+				const timestamp = toEpochTimestamp(timestampValue);
 				const request = new requests.SetViewPortion(userId, itemId, portion, {
 					sessionId,
 					cascadeCreate,
