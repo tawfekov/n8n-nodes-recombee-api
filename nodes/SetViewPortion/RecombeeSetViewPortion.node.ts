@@ -114,7 +114,7 @@ export class RecombeeSetViewPortion implements INodeType {
 
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 		let batchRequests: requests.Request[] = [];
-		const processedItems: { userId: string; itemId: string; portion: number; sessionId: string; additionalData: Record<string, any>; cascadeCreate: boolean; recommId: string; timestamp: string; index: number }[] = [];
+		const processedItems: { userId: string; itemId: string; portion: number; sessionId: string; additionalData: Record<string, any>; cascadeCreate: boolean; recommId: string; timestamp: number; index: number }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;

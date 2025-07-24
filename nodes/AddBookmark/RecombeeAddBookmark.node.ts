@@ -91,7 +91,7 @@ export class RecombeeAddBookmark implements INodeType {
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 
 		let batchRequests: requests.Request[] = [];
-		const processedItems: { userId: string; itemId: string; recommId: string; index: number, cascadeCreate: boolean, timestamp: string }[] = [];
+		const processedItems: { userId: string; itemId: string; recommId: string; index: number, cascadeCreate: boolean, timestamp: number }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;
