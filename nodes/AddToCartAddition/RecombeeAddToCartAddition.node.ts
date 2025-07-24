@@ -7,6 +7,7 @@ import {
 	NodeConnectionTypes,
 } from 'n8n-workflow';
 import { ApiClient as RecombeeClient, requests } from 'recombee-api-client';
+import { toEpochTimestamp } from '../Utils/timestamp';
 
 export class RecombeeAddToCartAddition implements INodeType {
 	description: INodeTypeDescription = {
@@ -96,7 +97,7 @@ export class RecombeeAddToCartAddition implements INodeType {
 
 		const maxRetries = this.getNodeParameter('maxRetries', 0) as number;
 		let batchRequests: requests.Request[] = [];
-		const processedItems: { itemId: string; userId: string; amount: number; timestamp: string; index: number; cascadeCreate: boolean, recommId?: string }[] = [];
+		const processedItems: { itemId: string; userId: string; amount: number; timestamp: number; index: number; cascadeCreate: boolean, recommId?: string }[] = [];
 
 		const sendBatchWithRetry = async (batch: requests.Request[], itemsMeta: any[]) => {
 			let attempts = 0;
@@ -131,13 +132,7 @@ export class RecombeeAddToCartAddition implements INodeType {
 				const cascadeCreate: boolean = this.getNodeParameter('cascadeCreate', i) as boolean || false;
 				const recommId = this.getNodeParameter('recommId', i) as string || ''
 				const timestampValue = this.getNodeParameter('timestamp', i);
-				let timestamp: string;
-				if (typeof timestampValue === 'string' || typeof timestampValue === 'number') {
-					const date = new Date(timestampValue);
-					timestamp = isNaN(date.getTime()) ? new Date().getTime().toString() : date.getTime().toString();
-				} else {
-					timestamp = new Date().getTime().toString();
-				}
+				const timestamp = toEpochTimestamp(timestampValue);
 				const request = new requests.AddCartAddition(userId, itemId, { amount, timestamp, cascadeCreate, recommId });
 				request.timeout = timeout;
 				batchRequests.push(request);
