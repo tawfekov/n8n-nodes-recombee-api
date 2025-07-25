@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-recombee-api",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"description": "An n8n community node package that integrates with the Recombee API, enabling users to manage and interact with Recombee's recommendation engine through n8n workflows.",
 	"keywords": [
 		"n8n-community-node-package",
